@@ -115,8 +115,9 @@ const Report = () => {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center flex flex-col items-center">
             <h3 className="font-bold text-gray-700 mb-6">Overall Score</h3>
-            <div className="relative w-40 h-40 rounded-full flex items-center justify-center bg-gray-50 border-[10px] border-emerald-100 mb-2">
-              <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+            <div className="relative w-40 h-40 rounded-full flex items-center justify-center bg-gray-50 mb-2">
+              <svg viewBox="0 0 160 160" className="absolute inset-0 w-full h-full transform -rotate-90">
+                <circle cx="80" cy="80" r="70" fill="none" strokeWidth="10" stroke="#d1fae5" />
                 <circle cx="80" cy="80" r="70" fill="none" strokeWidth="10" stroke="#1D9E75" strokeDasharray="440" strokeDashoffset={440 - (440 * (reportData.overallScore / 10))} className="transition-all duration-1000 ease-out" strokeLinecap="round" />
               </svg>
               <div className="text-center">
