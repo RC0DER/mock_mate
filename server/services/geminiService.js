@@ -119,27 +119,35 @@ Return ONLY valid JSON format: { "question": "The question text" }`;
 };
 
 const evaluateAnswer = async (role, question, answer, experienceLevel) => {
-  const prompt = `Evaluate this interview answer for a ${role} role.
+  const prompt = `Evaluate this interview answer for a ${role} role. Provide a ruthless, extremely strict evaluation.
 Question: ${question}
 Answer: ${answer}
 
-Return JSON with scores (1-10):
+CRITICAL RULES:
+1. Show NO empathy and NO mercy.
+2. If the answer is gibberish (e.g. "jhfbksdhf", "asd"), keyboard smashing, or completely irrelevant, you MUST score 0 for every single metric.
+3. If the answer is extremely short or lacks any technical depth, score below 3.
+
+Return JSON with scores (0-10):
 {
   "scores": { "answerFraming": 5, "technicalKnowledge": 5, "communication": 5, "confidence": 5, "problemSolving": 5 },
-  "feedback": "Quick feedback",
+  "feedback": "Ruthless, honest feedback.",
   "followUpNeeded": false
 }`;
 
+  const isGibberish = answer.trim().length < 15;
+  const defaultScore = isGibberish ? 0 : 5;
+
   return await generateWithRetry(prompt, {
-    scores: { answerFraming: 6, technicalKnowledge: 6, communication: 6, confidence: 6, problemSolving: 6 },
-    feedback: "Your answer was acceptable but could use more detail.",
+    scores: { answerFraming: defaultScore, technicalKnowledge: defaultScore, communication: defaultScore, confidence: defaultScore, problemSolving: defaultScore },
+    feedback: isGibberish ? "Candidate provided an invalid or empty response." : "Due to high server load, your answer received an automated baseline score.",
     followUpNeeded: false
   });
 };
 
 const generateReport = async (candidateName, role, allQA) => {
-  const systemPrompt = `You are a senior hiring panel evaluator with 15+ years of experience assessing candidates across technical and behavioral interviews.
-Your job is to generate a comprehensive, honest, and actionable post-interview report based on the full interview transcript.
+  const systemPrompt = `You are an extremely strict and ruthless senior hiring panel evaluator with 15+ years of experience assessing candidates.
+Your job is to generate a comprehensive, brutally honest, and actionable post-interview report based on the full interview transcript.
 
 Candidate: ${candidateName}
 Role Applied For: ${role}
@@ -147,13 +155,17 @@ Role Applied For: ${role}
 TRANSCRIPT:
 ${JSON.stringify(allQA)}
 
-Do not be lenient. Round scores to 1 decimal place.
+CRITICAL EVALUATION RULES:
+1. SHOW NO EMPATHY OR MERCY. Score practically and harshly.
+2. If the user typed gibberish, "asdasd", irrelevant text, or extremely short non-answers, the overall score MUST be 0 or 1.
+3. Individual dimension scores MUST accurately reflect terrible performance. A 0 is appropriate for gibberish.
+4. You must detect candidates who bypassed or trolled the interview.
 
 Return a STRICT JSON object representing the exact scorecard structure below. Do not use Markdown outside of JSON strings.
 
 {
   "overallScore": 8.5,
-  "overallImpression": "2-3 sentences honest, balanced, specific impression.",
+  "overallImpression": "2-3 sentences honest, brutally specific impression without sugarcoating.",
   "technicalScore": 8.0,
   "technicalFeedback": "3-5 sentences summarising patterns across all tech answers.",
   "technicalBreakdown": {
@@ -175,50 +187,52 @@ Return a STRICT JSON object representing the exact scorecard structure below. Do
       "question": "Exact question asked",
       "userAnswer": "Exact or paraphrased answer",
       "score": 8,
-      "evaluatorComment": "2-3 sentences. What was right/missing?",
+      "evaluatorComment": "2-3 sentences. Brutally honest feedback.",
       "suggestedAnswer": "Strong model answer tailored to candidate's context/resume.",
       "gapAnalysis": "1-2 sentences on missing STAR component or concept."
     }
   ],
   "strengths": [
-    { "name": "Strength 1", "evidence": "Tie to a specific answer" },
-    { "name": "Strength 2", "evidence": "Tie to a specific answer" }
+    { "name": "Strength 1", "evidence": "Tie to a specific answer" }
   ],
   "weaknesses": [
-    { "name": "Gap 1", "whyItMatters": "Impact on job", "nextStep": "Specific action" },
-    { "name": "Gap 2", "whyItMatters": "Impact on job", "nextStep": "Specific action" }
+    { "name": "Gap 1", "whyItMatters": "Impact on job", "nextStep": "Specific action" }
   ],
   "hiringDecision": "Strong Hire | Hire | Borderline | No Hire",
   "justification": "1-2 sentences specific justification for the decision."
 }`;
 
+  // Smart fallback calculating actual lengths if AI rate limits
+  const totalLength = allQA.reduce((acc, qa) => acc + (qa.answer || qa.userAnswer || "").length, 0);
+  const avgLength = totalLength / (allQA.length || 1);
+  const isSpam = avgLength < 25; // if their average answer is less than 25 chars, they failed
+
   const fallbackData = {
-    overallScore: 7.5,
-    overallImpression: "The candidate demonstrated solid foundational knowledge but struggled with deep technical constraints under pressure.",
-    technicalScore: 7.0,
-    technicalFeedback: "General technical grasp is good, but debugging edge cases needs improvement.",
-    technicalBreakdown: { conceptual: 7, applied: 7, system: 6, communication: 8 },
-    hrScore: 8.0,
-    hrFeedback: "Good collaboration signals, but answers could be structured better using STAR.",
-    hrBreakdown: { clarity: 7, selfAwareness: 8, collaboration: 9, leadership: 7 },
+    overallScore: isSpam ? 0.0 : 6.0,
+    overallImpression: isSpam ? "The candidate provided completely invalid, highly superficial, or gibberish responses throughout the interview." : "The candidate demonstrated some foundational knowledge but struggled due to incomplete answers.",
+    technicalScore: isSpam ? 0.0 : 5.5,
+    technicalFeedback: isSpam ? "No valid technical knowledge was demonstrated." : "General technical grasp observed, but deep implementation details were missing.",
+    technicalBreakdown: { conceptual: isSpam ? 0 : 5, applied: isSpam ? 0 : 6, system: isSpam ? 0 : 5, communication: isSpam ? 0 : 6 },
+    hrScore: isSpam ? 0.0 : 6.5,
+    hrFeedback: isSpam ? "Candidate failed to answer behavioral questions professionally." : "Showed basic collaborative signals but lacked structured STAR framework usage.",
+    hrBreakdown: { clarity: isSpam ? 0 : 6, selfAwareness: isSpam ? 0 : 7, collaboration: isSpam ? 0 : 7, leadership: isSpam ? 0 : 6 },
     qaHighlights: allQA.map(qa => ({
       question: qa.question || "Unknown Question",
       userAnswer: qa.answer || qa.userAnswer || "No answer provided.",
-      score: 7,
-      evaluatorComment: "Answer was general.",
-      suggestedAnswer: "Incorporate the STAR framework and discuss specific outcomes.",
-      gapAnalysis: "Lacked concrete metrics."
+      score: (qa.answer || qa.userAnswer || "").length < 15 ? 0 : 6,
+      evaluatorComment: (qa.answer || qa.userAnswer || "").length < 15 ? "Invalid or non-existent response." : "Answer was too brief.",
+      suggestedAnswer: "Please provide a detailed STAR method response.",
+      gapAnalysis: "Lacked concrete metrics and professionalism."
     })),
-    strengths: [
-      { name: "Communication", evidence: "Clear and articulate delivery." },
-      { name: "Collaboration", evidence: "Expressed team-first mentality." }
+    strengths: isSpam ? [{ name: "None", evidence: "Did not demonstrate any viable strengths." }] : [
+      { name: "Attempted Communication", evidence: "Made an effort to submit answers." }
     ],
     weaknesses: [
-      { name: "Technical Depth", whyItMatters: "Needed for complex debugging.", nextStep: "Practice system design." },
-      { name: "Answer Structure", whyItMatters: "Prevents rambling.", nextStep: "Use STAR method." }
+      { name: "Answer Depth", whyItMatters: "Cannot assess technical proficiency without detailed answers.", nextStep: "Provide full sentences and explanations." },
+      { name: "Professionalism", whyItMatters: "Gibberish or incomplete responses indicate lack of seriousness.", nextStep: "Take the interview seriously." }
     ],
-    hiringDecision: "Hire",
-    justification: "Candidate is coachable and possesses the core skills."
+    hiringDecision: "No Hire",
+    justification: isSpam ? "Candidate completely failed to participate in the interview." : "The responses provided to technical and HR questions lacked sufficient depth to justify an offer."
   };
 
   return await generateWithRetry(systemPrompt, fallbackData);

@@ -5,7 +5,7 @@ import { uploadResume, analyzeResume } from '../api/interviewApi';
 
 const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
   const navigate = useNavigate();
-  const { updateCandidateInfo, updateInterviewState } = useInterview();
+  const { updateCandidateInfo, updateInterviewState, setReportData } = useInterview();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -95,6 +95,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
     setFile(null);
     setAnalysisResult(null);
     setError(null);
+    setReportData(null); // Clear old report
     updateInterviewState({ 
       currentQuestionIndex: 0, 
       questions: [], 
@@ -107,6 +108,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
   };
 
   const proceedToInterview = () => {
+    setReportData(null); // CRITICAL: Force new report to be fetched on completion
     updateInterviewState({ 
       currentQuestionIndex: 0, 
       questions: [], 
