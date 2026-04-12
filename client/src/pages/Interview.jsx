@@ -14,10 +14,21 @@ const Interview = () => {
   const [currentQ, setCurrentQ] = useState('');
   const [typedAnswer, setTypedAnswer] = useState('');
   const [isAiThinking, setIsAiThinking] = useState(true);
-  const [mode, setMode] = useState('voice'); // 'voice' or 'text'
+  const [mode, setMode] = useState('voice'); 
   
-  const totalQuestions = 8;
   const qIndex = interviewState.currentQuestionIndex;
+
+  // Expert Structure: 
+  // Phase 1: Intro (2q), Phase 2: Tech (8q), Phase 3: HR (6q)
+  const getRoundInfo = (index) => {
+    if (index >= 0 && index <= 1) return { round: 1, name: 'Introduction', totalInRound: 2 };
+    if (index >= 2 && index <= 9) return { round: 2, name: 'Technical Interview', totalInRound: 8 };
+    if (index >= 10 && index <= 15) return { round: 3, name: 'HR Interview', totalInRound: 6 };
+    return { round: 3, name: 'Final Wrap-up', totalInRound: 1 };
+  };
+
+  const { round, name: roundName } = getRoundInfo(qIndex);
+  const totalQuestions = 16;
 
   useEffect(() => {
     if (!candidateInfo.name) {
@@ -37,20 +48,25 @@ const Interview = () => {
           candidateInfo.experience,
           candidateInfo.resumeAnalysis,
           interviewState.questions,
-          lastAnswer
+          lastAnswer,
+          round
         );
         
         setCurrentQ(qResponse.question);
         setIsAiThinking(false);
-        
-        // Speak the question
         speak(qResponse.question);
         
       } catch (e) {
         console.error(e);
-        setCurrentQ("Could you tell me more about your recent project experience?");
+        const fallback = qIndex === 0 
+          ? "Before we dive in — please give me a brief introduction about yourself. Who are you, where are you from, and what brought you to this field?"
+          : qIndex === 1
+          ? "Great! Now, tell me about the project you are most proud of — walk me through what you built, the problem it solved, your specific role, and the outcome."
+          : "Could you tell me more about your technical expertise and how you solve complex problems?";
+        
+        setCurrentQ(fallback);
         setIsAiThinking(false);
-        speak("Could you tell me more about your recent project experience?");
+        speak(fallback);
       }
     };
     
@@ -60,7 +76,7 @@ const Interview = () => {
       stopSpeaking();
       stopListening();
     };
-  }, [qIndex]); // Re-run when question index advances
+  }, [qIndex]);
 
   const handleSubmitAnswer = async () => {
     stopListening();
@@ -71,7 +87,6 @@ const Interview = () => {
 
     setIsAiThinking(true);
     
-    // Save locally to context immediately
     const updatedQuestions = [...interviewState.questions, currentQ];
     const updatedAnswers = [...interviewState.answers, finalAnswer];
     
@@ -86,7 +101,6 @@ const Interview = () => {
       const updatedEvals = [...interviewState.evaluations, { question: currentQ, answer: finalAnswer, ...evaluation }];
       
       if (qIndex + 1 < totalQuestions) {
-        // Next question
         updateInterviewState({
           questions: updatedQuestions,
           answers: updatedAnswers,
@@ -96,15 +110,12 @@ const Interview = () => {
         resetTranscript();
         setTypedAnswer('');
       } else {
-        // End interview & transition to report
         updateInterviewState({
           questions: updatedQuestions,
           answers: updatedAnswers,
           evaluations: updatedEvals,
           status: 'report'
         });
-        
-        // Let report page generate the final report via API
         navigate('/report');
       }
       
@@ -124,42 +135,48 @@ const Interview = () => {
             <div className="w-10 h-10 rounded-full bg-green-accent text-white flex items-center justify-center font-bold border-2 border-white">{candidateInfo.name?.charAt(0) || 'U'}</div>
           </div>
           <div>
-            <h1 className="font-bold text-gray-900">Mock Interview</h1>
-            <p className="text-xs text-gray-500">{candidateInfo.role}</p>
+            <h1 className="font-bold text-gray-900">{roundName}</h1>
+            <p className="text-xs text-gray-500">Round {round} of 3 • {candidateInfo.role}</p>
           </div>
         </div>
         
         <div className="flex flex-col items-end">
           <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold font-mono">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            REC
+            LIVE SESSION
           </div>
         </div>
       </div>
       
       {/* Progress */}
-      <div className="w-full bg-gray-200 h-1">
-        <div className="bg-green-accent h-1 transition-all" style={{ width: `${((qIndex) / totalQuestions) * 100}%` }}></div>
+      <div className="w-full bg-gray-200 h-1.5">
+        <div className="bg-green-accent h-1.5 transition-all duration-700" style={{ width: `${((qIndex + 1) / totalQuestions) * 100}%` }}></div>
       </div>
 
       <main className="flex-grow flex flex-col items-center justify-center p-6 lg:p-12 w-full max-w-4xl mx-auto">
-        <div className="text-center mb-8 flex flex-col items-center">
-          <span className="bg-white text-green-accent shadow-sm px-4 py-1.5 rounded-full text-sm font-bold border border-gray-100 mb-6 inline-block">
-            Question {qIndex + 1} / {totalQuestions}
-          </span>
+        <div className="text-center mb-10 flex flex-col items-center w-full">
+          <div className="flex items-center gap-3 mb-8">
+            <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${round === 1 ? 'bg-blue-100 text-blue-600' : round === 2 ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+               Round {round}
+            </span>
+            <span className="bg-white text-gray-500 shadow-sm px-4 py-1.5 rounded-full text-sm font-bold border border-gray-100">
+               Question {qIndex + 1} / {totalQuestions}
+            </span>
+          </div>
           
           {isAiThinking ? (
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 w-full max-w-2xl min-h-[200px] flex flex-col items-center justify-center gap-4">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 bg-green-accent rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-3 h-3 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-gray-100 w-full max-w-2xl min-h-[250px] flex flex-col items-center justify-center gap-6">
+              <div className="flex gap-3">
+                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce"></div>
+                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
-              <p className="font-medium text-gray-500 animate-pulse text-lg">AI is thinking...</p>
+              <p className="font-bold text-gray-400 text-xl tracking-tight">AI Interviewer is preparing {roundName} questions...</p>
             </div>
           ) : (
-            <div className="bg-white p-8 lg:p-12 rounded-3xl shadow-xl border border-gray-100 w-full">
-              <h2 className={`font-bold text-gray-900 leading-tight transition-all duration-300 ${currentQ.length > 100 ? 'text-2xl lg:text-3xl' : 'text-3xl lg:text-4xl'}`}>
+            <div className="bg-white p-10 lg:p-16 rounded-[40px] shadow-2xl border border-gray-100 w-full relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-2 h-full bg-green-accent"></div>
+               <h2 className="font-black text-gray-900 leading-tight text-3xl lg:text-5xl text-left">
                 "{currentQ}"
               </h2>
             </div>
@@ -167,35 +184,35 @@ const Interview = () => {
         </div>
 
         {/* Answer Controls */}
-        <div className="w-full bg-white rounded-3xl shadow-md border border-gray-100 p-6 flex flex-col gap-6 transition-all duration-300">
-          <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-            <h3 className="font-bold text-gray-700">Your Answer</h3>
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
-              <button onClick={() => setMode('voice')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${mode === 'voice' ? 'bg-white shadow-sm text-green-accent' : 'text-gray-500'}`}>Voice</button>
-              <button onClick={() => setMode('text')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${mode === 'text' ? 'bg-white shadow-sm text-green-accent' : 'text-gray-500'}`}>Type</button>
+        <div className="w-full bg-white/80 backdrop-blur-md rounded-[32px] shadow-xl border border-white/50 p-8 flex flex-col gap-6 transition-all duration-500">
+          <div className="flex justify-between items-center border-b border-gray-100 pb-6">
+            <h3 className="font-black text-gray-900 uppercase tracking-tighter text-lg">Your Response</h3>
+            <div className="flex gap-2 bg-gray-100/50 p-1.5 rounded-2xl">
+              <button onClick={() => setMode('voice')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'voice' ? 'bg-white shadow-md text-green-accent' : 'text-gray-400 hover:text-gray-600'}`}>VOICE</button>
+              <button onClick={() => setMode('text')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'text' ? 'bg-white shadow-md text-green-accent' : 'text-gray-400 hover:text-gray-600'}`}>TEXT</button>
             </div>
           </div>
 
           {mode === 'voice' ? (
-            <div className="flex flex-col items-center py-6">
-              <div className="min-h-[100px] w-full mb-6 relative">
+            <div className="flex flex-col items-center py-4">
+              <div className="min-h-[120px] w-full mb-8 relative">
                 {transcript ? (
-                  <p className="text-lg text-gray-700 p-4 bg-gray-50 rounded-xl border border-gray-200 min-h-[100px] whitespace-pre-wrap">{transcript}</p>
+                  <p className="text-xl text-gray-800 p-6 bg-gray-50/50 rounded-3xl border border-gray-100 min-h-[120px] leading-relaxed shadow-inner">{transcript}</p>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50 text-gray-400">
-                    {isListening ? "Listening... Speak now." : "Click microphone to start recording your answer"}
+                  <div className="absolute inset-0 flex items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/30 text-gray-400 font-medium italic">
+                    {isListening ? "Listening... I'm all ears!" : "Tap the microphone and start speaking clearly."}
                   </div>
                 )}
               </div>
               
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-8">
                 <button 
                   onClick={isListening ? stopListening : startListening}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-105 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-green-accent text-white'}`}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 ${isListening ? 'bg-red-500 text-white ring-8 ring-red-100' : 'bg-green-accent text-white ring-8 ring-green-50'}`}
                 >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     {isListening ? (
-                      <rect x="6" y="6" width="12" height="12"></rect>
+                      <rect x="6" y="6" width="12" height="12" rx="2"></rect>
                     ) : (
                       <>
                         <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
@@ -206,17 +223,18 @@ const Interview = () => {
                   </svg>
                 </button>
                 {(transcript.length > 0) && !isAiThinking && (
-                  <button onClick={handleSubmitAnswer} className="bg-gray-900 text-white px-8 py-4 rounded-full font-bold hover:bg-black shadow-lg">
-                    Submit Answer
+                  <button onClick={handleSubmitAnswer} className="bg-gray-900 text-white px-10 py-5 rounded-full font-black text-lg hover:bg-black shadow-2xl transform transition-transform active:scale-95 flex items-center gap-3">
+                    SUBMIT ANSWER
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <textarea 
-                className="w-full h-40 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-accent focus:outline-none resize-none text-lg text-gray-700" 
-                placeholder="Type your answer here..."
+                className="w-full h-48 p-6 bg-gray-50/50 border border-gray-100 rounded-3xl focus:ring-4 focus:ring-green-accent/20 focus:bg-white focus:outline-none resize-none text-xl text-gray-800 leading-relaxed transition-all shadow-inner" 
+                placeholder="Type your insights here..."
                 value={typedAnswer}
                 onChange={(e) => setTypedAnswer(e.target.value)}
               ></textarea>
@@ -224,9 +242,10 @@ const Interview = () => {
                 <button 
                   onClick={handleSubmitAnswer} 
                   disabled={!typedAnswer.trim() || isAiThinking}
-                  className="bg-green-accent text-white px-8 py-3 rounded-full font-bold shadow-lg disabled:opacity-50"
+                  className="bg-green-accent text-white px-12 py-4 rounded-2xl font-black text-lg shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 active:scale-95 transition-all flex items-center gap-3"
                 >
-                  Submit Answer
+                  SUBMIT ANSWER
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
               </div>
             </div>

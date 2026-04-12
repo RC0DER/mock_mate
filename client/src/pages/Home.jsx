@@ -12,6 +12,17 @@ import { useLocation } from 'react-router-dom';
 const Home = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('full'); // 'full' or 'review-only'
+  
+  const handleOnboarding = (type = 'full') => {
+    if (type === 'Resume Review') {
+      setModalMode('review-only');
+    } else {
+      setModalMode('full');
+    }
+    setIsModalOpen(true);
+  };
+
   const location = useLocation();
 
   useEffect(() => {
@@ -36,16 +47,20 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col pt-1">
-      <Navbar activeSection={activeSection} onGetStarted={() => setIsModalOpen(true)} />
+      <Navbar activeSection={activeSection} onGetStarted={() => handleOnboarding('full')} />
       <main>
-        <Hero onGetStarted={() => setIsModalOpen(true)} />
-        <CareerPrep onAction={() => setIsModalOpen(true)} />
-        <LearnGrow onAction={() => setIsModalOpen(true)} />
+        <Hero onGetStarted={() => handleOnboarding('full')} />
+        <CareerPrep onAction={(type) => handleOnboarding(type)} />
+        <LearnGrow onAction={() => handleOnboarding('full')} />
         <Blog />
         <Contact />
       </main>
       <Footer />
-      <OnboardingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <OnboardingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        mode={modalMode}
+      />
     </div>
   );
 };

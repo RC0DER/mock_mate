@@ -60,7 +60,7 @@ const CareerPrep = ({ onAction }) => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{card.title}</h3>
               <p className="text-gray-600 mb-8 flex-grow">{card.description}</p>
-              <button onClick={onAction} className="btn-outline w-full mt-auto">{card.buttonText}</button>
+              <button onClick={() => onAction(card.title)} className="btn-outline w-full mt-auto">{card.buttonText}</button>
             </div>
           ))}
         </div>

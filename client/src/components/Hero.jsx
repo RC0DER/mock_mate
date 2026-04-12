@@ -32,7 +32,7 @@ const Hero = ({ onGetStarted }) => {
             Practice with an expert AI interviewer tailored to your experience and target role. Get instant feedback and improve faster.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <button 
               onClick={onGetStarted}
               className="bg-green-accent text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-opacity-90 hover:shadow-xl hover:shadow-green-accent/30 transition-all hover:-translate-y-1 relative overflow-hidden group"
@@ -46,29 +46,6 @@ const Hero = ({ onGetStarted }) => {
             >
               Learn More
             </button>
-          </div>
-          
-          {/* Social Proof */}
-          <div className="border-t border-gray-200/60 pt-8 flex flex-col sm:flex-row items-center gap-8 lg:justify-start justify-center">
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-4">
-                <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white font-bold text-xs shadow-sm">JD</div>
-                <div className="w-10 h-10 rounded-full bg-purple-500 border-2 border-white flex items-center justify-center text-white font-bold text-xs shadow-sm">SM</div>
-                <div className="w-10 h-10 rounded-full bg-orange-500 border-2 border-white flex items-center justify-center text-white font-bold text-xs shadow-sm">AK</div>
-                <div className="w-10 h-10 rounded-full bg-green-500 border-2 border-white flex items-center justify-center text-white font-bold text-xs shadow-sm">+20k</div>
-              </div>
-              <div className="text-sm font-semibold text-gray-700">
-                <span className="text-green-accent font-bold">20K+</span> Students Enrolled
-              </div>
-            </div>
-            
-            <div className="hidden sm:block h-8 w-px bg-gray-300"></div>
-            
-            <div className="flex items-center gap-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
-              <span className="font-bold text-gray-800 text-lg tracking-tighter">Google</span>
-              <span className="font-bold text-gray-800 text-lg tracking-tighter">Microsoft</span>
-              <span className="font-bold text-gray-800 text-lg tracking-tighter">Amazon</span>
-            </div>
           </div>
         </div>
         

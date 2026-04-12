@@ -4,15 +4,16 @@ const geminiService = require('../services/geminiService');
 
 router.post('/generate-question', async (req, res) => {
   try {
-    const { role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer } = req.body;
-    const question = await geminiService.generateQuestion(
+    const { role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer, round } = req.body;
+    const result = await geminiService.generateQuestion(
       role, 
       experienceLevel, 
       resumeAnalysis, 
       previousQuestions, 
-      lastAnswer
+      lastAnswer,
+      round
     );
-    res.json({ question });
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

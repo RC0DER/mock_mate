@@ -22,11 +22,11 @@ export const analyzeResume = async (resumeText, role, experienceLevel) => {
   return res.json();
 };
 
-export const generateQuestion = async (role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer) => {
+export const generateQuestion = async (role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer, round = 1) => {
   const res = await fetch(`${API_URL}/generate-question`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer })
+    body: JSON.stringify({ role, experienceLevel, resumeAnalysis, previousQuestions, lastAnswer, round })
   });
   if (!res.ok) throw new Error('Failed to generate question');
   return res.json();
