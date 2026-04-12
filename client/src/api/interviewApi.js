@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// Use Vite env variable or dynamically resolve the frontend's host IP for local network testing
+const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000/api`;
 
 export const uploadResume = async (file) => {
   const formData = new FormData();
