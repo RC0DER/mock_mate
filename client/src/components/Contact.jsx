@@ -97,7 +97,7 @@ const Contact = () => {
                   id="subject" 
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
                   placeholder="How can we help?" 
                   required 
                 />
@@ -109,7 +109,7 @@ const Contact = () => {
                   rows="4" 
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" 
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" 
                   placeholder="Your message here..." 
                   required
                 ></textarea>
@@ -135,7 +135,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Email Us</h4>
-                  <p className="text-white/80">anurag.net02@gmail.com</p>
+                  <p className="text-white/80">support.mockmate@gmail.com</p>
                 </div>
               </div>
               
