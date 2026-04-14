@@ -1,8 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useInView } from '../hooks/useInView';
+import { sendContactMessage } from '../api/interviewApi';
 
 const Contact = () => {
   const [ref, isVisible] = useInView();
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      await sendContactMessage(formData);
+      setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message || 'Something went wrong. Please try again later.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   return (
     <section id="contact-us" className="py-20 min-h-screen bg-lightGreen flex items-center">
@@ -16,26 +45,71 @@ const Contact = () => {
         <div className="flex flex-col lg:flex-row gap-12 bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
           {/* Left panel - Form */}
           <div className="lg:w-3/5 p-8 lg:p-12">
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {status.message && (
+              <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${
+                status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              }`}>
+                {status.message}
+              </div>
+            )}
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                  <input type="text" id="name" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" placeholder="John Doe" required />
+                  <input 
+                    type="text" 
+                    id="name" 
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                    placeholder="John Doe" 
+                    required 
+                  />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input type="email" id="email" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" placeholder="john@example.com" required />
+                  <input 
+                    type="email" 
+                    id="email" 
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                    placeholder="john@example.com" 
+                    required 
+                  />
                 </div>
               </div>
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                <input type="text" id="subject" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" placeholder="How can we help?" required />
+                <input 
+                  type="text" 
+                  id="subject" 
+                  value={formData.subject}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                  placeholder="How can we help?" 
+                  required 
+                />
               </div>
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea id="message" rows="4" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" placeholder="Your message here..." required></textarea>
+                <textarea 
+                  id="message" 
+                  rows="4" 
+                  value={formData.message}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" 
+                  placeholder="Your message here..." 
+                  required
+                ></textarea>
               </div>
-              <button type="submit" className="btn-primary w-full shadow-lg shadow-green-accent/30 py-4 text-lg">Send Message</button>
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="btn-primary w-full shadow-lg shadow-green-accent/30 py-4 text-lg disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Sending...' : 'Send Message'}
+              </button>
             </form>
           </div>
           

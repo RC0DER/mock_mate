@@ -5,6 +5,7 @@ const cors = require('cors');
 const resumeRoutes = require('./routes/resume');
 const interviewRoutes = require('./routes/interview');
 const reportRoutes = require('./routes/report');
+const contactRoutes = require('./routes/contact');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,11 +17,12 @@ app.use(express.json());
 app.use('/api', resumeRoutes);
 app.use('/api', interviewRoutes);
 app.use('/api', reportRoutes);
+app.use('/api', contactRoutes);
 
 app.get('/health', (req, res) => {
   res.send('MockMate backend is running!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT} and listening for LAN connections on 0.0.0.0`);
 });

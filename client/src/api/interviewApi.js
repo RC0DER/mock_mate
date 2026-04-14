@@ -52,3 +52,16 @@ export const generateReport = async (candidateName, role, allQA) => {
   if (!res.ok) throw new Error('Failed to generate report');
   return res.json();
 };
+
+export const sendContactMessage = async (data) => {
+  const res = await fetch(`${API_URL}/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Failed to send message');
+  }
+  return res.json();
+};
