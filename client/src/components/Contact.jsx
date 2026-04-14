@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useInView } from '../hooks/useInView';
-import { sendContactMessage } from '../api/interviewApi';
+import emailjs from '@emailjs/browser';
 
 const Contact = () => {
   const [ref, isVisible] = useInView();
@@ -20,11 +20,22 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      await sendContactMessage(formData);
+      await emailjs.send(
+        'service_l9eiwoi',
+        'template_895v4wi',
+        {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        'pJFWUCoTqzp0iba4Z'
+      );
       setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' });
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
-      setStatus({ type: 'error', message: error.message || 'Something went wrong. Please try again later.' });
+      console.error('EmailJS Error:', error);
+      setStatus({ type: 'error', message: error?.text || 'Something went wrong. Please try again later.' });
     } finally {
       setLoading(false);
     }
@@ -124,7 +135,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Email Us</h4>
-                  <p className="text-white/80">support@mockmate.com</p>
+                  <p className="text-white/80">anurag.net02@gmail.com</p>
                 </div>
               </div>
               
@@ -144,7 +155,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Location</h4>
-                  <p className="text-white/80">Remote — Available Worldwide</p>
+                  <p className="text-white/80">Greater Noida</p>
                 </div>
               </div>
             </div>
