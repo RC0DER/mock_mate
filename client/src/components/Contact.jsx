@@ -46,14 +46,14 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact-us" className="py-20 min-h-screen bg-lightGreen flex items-center">
+    <section id="contact-us" className="py-20 min-h-screen bg-lightGreen dark:bg-gray-900 transition-colors duration-200 flex items-center">
       <div 
         className="max-w-6xl mx-auto px-6 w-full"
       >
-        <h2 className="text-4xl font-bold text-center text-gray-900">Get in Touch</h2>
-        <p className="text-lg text-center text-gray-500 mt-3 mb-12">Have questions? We'd love to hear from you</p>
+        <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white">Get in Touch</h2>
+        <p className="text-lg text-center text-gray-500 dark:text-gray-400 mt-3 mb-12">Have questions? We'd love to hear from you</p>
         
-        <div className="flex flex-col lg:flex-row gap-12 bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-green-100 dark:border-gray-700 overflow-hidden">
           {/* Left panel - Form */}
           <div className="lg:w-3/5 p-8 lg:p-12">
             {status.message && (
@@ -66,50 +66,50 @@ const Contact = () => {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
                   <input 
                     type="text" 
                     id="name" 
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
                     placeholder="John Doe" 
                     required 
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                   <input 
                     type="email" 
                     id="email" 
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
                     placeholder="john@example.com" 
                     required 
                   />
                 </div>
               </div>
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
                 <input 
                   type="text" 
                   id="subject" 
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all" 
                   placeholder="How can we help?" 
                   required 
                 />
               </div>
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message</label>
                 <textarea 
                   id="message" 
                   rows="4" 
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" 
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-accent focus:border-transparent transition-all resize-none" 
                   placeholder="Your message here..." 
                   required
                 ></textarea>
@@ -135,7 +135,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Email Us</h4>
-                  <p className="text-white/80">anurag.net02@gmail.com</p>
+                  <p className="text-white/80">support.mockmate@gmail.com</p>
                 </div>
               </div>
               

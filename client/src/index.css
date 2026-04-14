@@ -30,4 +30,5 @@ html {
 
 body {
     font-family: 'Inter', sans-serif;
+    @apply bg-white text-gray-900 dark:bg-dark dark:text-gray-100 transition-colors duration-200;
 }

@@ -44,22 +44,22 @@ const CareerPrep = ({ onAction }) => {
   ];
 
   return (
-    <section id="career-preparation" className="py-20 min-h-screen bg-white flex items-center">
+    <section id="career-preparation" className="py-20 min-h-screen bg-white dark:bg-dark transition-colors duration-200 flex items-center">
       <div 
         ref={ref}
         className={`max-w-6xl mx-auto px-6 w-full fade-up ${isVisible ? 'visible' : ''}`}
       >
-        <h2 className="text-4xl font-bold text-center text-gray-900">Career Preparation</h2>
-        <p className="text-lg text-center text-gray-500 mt-3 mb-12">Everything you need to land your dream job</p>
+        <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white">Career Preparation</h2>
+        <p className="text-lg text-center text-gray-500 dark:text-gray-400 mt-3 mb-12">Everything you need to land your dream job</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cards.map((card, idx) => (
-            <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col items-center text-center transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="w-16 h-16 bg-lightGreen text-green-accent rounded-2xl flex items-center justify-center mb-6">
+            <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 flex flex-col items-center text-center transition-all hover:shadow-lg hover:-translate-y-1">
+              <div className="w-16 h-16 bg-lightGreen dark:bg-green-accent/20 text-green-accent rounded-2xl flex items-center justify-center mb-6">
                 {card.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{card.title}</h3>
-              <p className="text-gray-600 mb-8 flex-grow">{card.description}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{card.title}</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-8 flex-grow">{card.description}</p>
               <button onClick={() => onAction(card.title)} className="btn-outline w-full mt-auto">{card.buttonText}</button>
             </div>
           ))}

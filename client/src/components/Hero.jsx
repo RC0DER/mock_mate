@@ -7,7 +7,7 @@ const Hero = ({ onGetStarted }) => {
   return (
     <section id="home" className="min-h-screen relative overflow-hidden flex items-center pt-28 pb-20">
       {/* CSS Bokeh Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white to-lightGreen -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-lightGreen dark:from-dark dark:to-gray-900 transition-colors duration-200 -z-10"></div>
       <div className="absolute top-20 -left-20 w-96 h-96 bg-green-accent/10 rounded-full blur-[100px] -z-10 animate-pulse"></div>
       <div className="absolute bottom-20 -right-20 w-[500px] h-[500px] bg-green-accent/10 rounded-full blur-[120px] -z-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-100/30 rounded-full blur-[150px] -z-10"></div>
@@ -23,12 +23,12 @@ const Hero = ({ onGetStarted }) => {
             AI-Powered Interview Simulator
           </div>
           
-          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight">
+          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
             Master your interview. <br />
             <span className="text-green-accent">Land your dream job.</span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
             Practice with an expert AI interviewer tailored to your experience and target role. Get instant feedback and improve faster.
           </p>
           
@@ -51,7 +51,7 @@ const Hero = ({ onGetStarted }) => {
         
         {/* Right Content - Mock Video Call UI */}
         <div className="lg:w-1/2 w-full max-w-lg relative z-10 perspective-1000">
-          <div className="bg-white p-3 rounded-[32px] shadow-2xl border border-white/50 relative overflow-hidden group hover:rotate-0 transition-transform duration-500 transform lg:rotate-y-[-5deg] lg:rotate-x-[5deg]">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 relative overflow-hidden group hover:rotate-0 transition-transform duration-500 transform lg:rotate-y-[-5deg] lg:rotate-x-[5deg]">
             <div className="absolute top-6 right-6 z-20 flex items-center gap-2 bg-black/50 backdrop-blur text-white px-3 py-1.5 rounded-full text-xs font-bold font-mono">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
               REC 12:45
@@ -81,13 +81,13 @@ const Hero = ({ onGetStarted }) => {
           </div>
           
           {/* Floating detail cards */}
-          <div className="absolute top-1/4 -left-12 bg-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 animate-bounce" style={{ animationDuration: '3s' }}>
-            <div className="w-8 h-8 rounded-full bg-green-accent/10 text-green-accent flex items-center justify-center">
+          <div className="absolute top-1/4 -left-12 bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-gray-100 dark:border-gray-700 animate-bounce" style={{ animationDuration: '3s' }}>
+            <div className="w-8 h-8 rounded-full bg-green-accent/10 dark:bg-green-accent/20 text-green-accent flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Feedback</p>
-              <p className="text-sm font-bold text-gray-900">Instant AI Scoring</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Feedback</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">Instant AI Scoring</p>
             </div>
           </div>
         </div>

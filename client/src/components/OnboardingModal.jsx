@@ -124,27 +124,27 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in-up max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in-up max-h-[90vh] overflow-y-auto">
         {/* Header / Progress */}
-        <div className="bg-green-accent/10 px-8 py-6 border-b border-green-accent/20 sticky top-0 z-10 backdrop-blur-md">
+        <div className="bg-green-accent/10 dark:bg-gray-800/40 px-8 py-6 border-b border-green-accent/20 dark:border-gray-800 sticky top-0 z-10 backdrop-blur-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {step === 'review' ? 'ATS Feedback' : mode === 'review-only' ? 'Instant Resume Review' : 'Let\'s setup your interview'}
             </h2>
-            <button onClick={handleClose} className="text-gray-500 hover:text-gray-900">
+            <button onClick={handleClose} className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
-          <div className="flex items-center text-sm font-medium">
+          <div className="flex items-center text-sm font-medium dark:text-gray-300">
             <span className={step === 'review' ? "text-gray-400" : "text-green-accent"}>Step 1 (Setup)</span>
-            <span className="mx-2 text-gray-300">→</span>
+            <span className="mx-2 text-gray-300">&rarr;</span>
             {mode === 'review-only' ? (
               <span className={step === 'review' ? "text-green-accent" : "text-gray-400"}>Step 2 (ATS Report)</span>
             ) : (
               <span className="text-gray-400">Step 2 (Interview)</span>
             )}
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-3">
             <div className="bg-green-accent h-1.5 rounded-full transition-all duration-500" style={{ width: step === 'review' ? '100%' : '50%' }}></div>
           </div>
         </div>
@@ -166,7 +166,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
           </div>
         ) : step === 'review' && analysisResult ? (
           <div className="p-8 pb-10 space-y-8">
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
+            <div className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">ATS Score</h3>
                 <p className="text-sm text-gray-500">How well you match the {formData.role === 'Other' ? formData.customRole : formData.role} role</p>
@@ -185,7 +185,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+              <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-2xl border border-red-100 dark:border-red-800/50">
                 <div className="flex items-center gap-2 mb-4 text-red-700">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                   <h3 className="font-bold">Missing Keywords</h3>
@@ -193,8 +193,8 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                 <ul className="space-y-2">
                   {(analysisResult.analysis.missingKeywords || []).length > 0 ? (
                     analysisResult.analysis.missingKeywords.map((kw, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-red-900 bg-white px-3 py-2 rounded-lg border border-red-100 shadow-sm">
-                        <span className="text-red-400 mt-0.5">•</span> {kw}
+                      <li key={i} className="flex items-start gap-2 text-sm text-red-900 dark:text-red-200 bg-white dark:bg-red-900/30 px-3 py-2 rounded-lg border border-red-100 dark:border-red-800/50 shadow-sm">
+                        <span className="text-red-400 mt-0.5">â€¢</span> {kw}
                       </li>
                     ))
                   ) : (
@@ -203,7 +203,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                 </ul>
               </div>
 
-              <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50">
                 <div className="flex items-center gap-2 mb-4 text-blue-700">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                   <h3 className="font-bold">Suggested Fixes</h3>
@@ -211,8 +211,8 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                 <ul className="space-y-2">
                   {(analysisResult.analysis.improvements || []).length > 0 ? (
                     analysisResult.analysis.improvements.map((imp, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-blue-900 bg-white px-3 py-2 rounded-lg border border-blue-100 shadow-sm">
-                        <span className="text-blue-400 mt-0.5">→</span> {imp}
+                      <li key={i} className="flex items-start gap-2 text-sm text-blue-900 dark:text-blue-200 bg-white dark:bg-blue-900/30 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800/50 shadow-sm">
+                        <span className="text-blue-400 mt-0.5">â†’</span> {imp}
                       </li>
                     ))
                   ) : (
@@ -231,7 +231,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
               </button>
               <button 
                 onClick={() => setStep('form')}
-                className="px-8 py-3 rounded-full font-bold bg-white text-green-accent border border-green-accent shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                className="px-8 py-3 rounded-full font-bold bg-white dark:bg-transparent text-green-accent border border-green-accent shadow-sm hover:shadow-md transition-all flex items-center gap-2"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                 New Upload
@@ -242,14 +242,14 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
           <div className="p-8 pb-10 space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Full Name</label>
-                <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 transition-all font-medium" 
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
+                <input type="text" className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 dark:bg-gray-800 dark:text-white transition-all font-medium" 
                   value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Jane Doe" />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Qualification</label>
-                <select className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 font-medium"
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Qualification</label>
+                <select className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 dark:bg-gray-800 dark:text-white font-medium"
                   value={formData.qualification} onChange={(e) => setFormData({...formData, qualification: e.target.value})}>
                   <option value="" disabled>Select Highest Qualification</option>
                   <option value="High School">High School / Senior Secondary</option>
@@ -270,7 +270,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                   <div className="mt-2 animate-fade-in-down">
                     <input 
                       type="text" 
-                      className="w-full border border-green-accent/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-white shadow-sm font-medium" 
+                      className="w-full border border-green-accent/30 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-white dark:bg-gray-800 dark:text-white shadow-sm font-medium" 
                       placeholder="Enter qualification name"
                       value={formData.customQualification}
                       onChange={(e) => setFormData({...formData, customQualification: e.target.value})}
@@ -280,8 +280,8 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Target Job Role</label>
-                <select className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 font-medium"
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Target Job Role</label>
+                <select className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 dark:bg-gray-800 dark:text-white font-medium"
                   value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})}>
                   <option value="" disabled>Select role</option>
                   <optgroup label="Technology">
@@ -310,7 +310,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                   <div className="mt-2 animate-fade-in-down">
                     <input 
                       type="text" 
-                      className="w-full border border-green-accent/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-white shadow-sm font-medium" 
+                      className="w-full border border-green-accent/30 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-white dark:bg-gray-800 dark:text-white shadow-sm font-medium" 
                       placeholder="Enter job role name"
                       value={formData.customRole}
                       onChange={(e) => setFormData({...formData, customRole: e.target.value})}
@@ -320,8 +320,8 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Experience Level</label>
-                <select className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50"
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Experience Level</label>
+                <select className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-accent/50 bg-gray-50/50 dark:bg-gray-800 dark:text-white"
                   value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})}>
                   <option value="" disabled>Select experience</option>
                   <option value="Fresher (0-1 yr)">Fresher (0-1 yr)</option>
@@ -335,9 +335,9 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1.5">Upload Resume (PDF - Max 5MB)</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Upload Resume (PDF - Max 5MB)</label>
               <div 
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${file ? 'border-green-accent bg-green-accent/5' : 'border-gray-200 hover:border-green-accent/50 hover:bg-gray-50'}`}
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${file ? 'border-green-accent bg-green-accent/5' : 'border-gray-200 dark:border-gray-700 hover:border-green-accent/50 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
@@ -357,7 +357,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
                 ) : (
                   <div className="flex flex-col items-center">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-gray-300 mb-2" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <p className="text-gray-500 font-bold">Drop your resume here</p>
+                    <p className="text-gray-500 dark:text-gray-300 font-bold">Drop your resume here</p>
                     <p className="text-xs text-gray-400 mt-1">Ready for AI-Powered ATS analysis</p>
                   </div>
                 )}
@@ -369,7 +369,7 @@ const OnboardingModal = ({ isOpen, onClose, mode = 'full' }) => {
               <button 
                 onClick={handleSubmit} 
                 disabled={!isFormValid}
-                className={`w-full sm:w-auto px-10 py-4 rounded-2xl font-black text-lg shadow-xl transition-all ${isFormValid ? 'bg-green-accent text-white hover:-translate-y-1 active:scale-95' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
+                className={`w-full sm:w-auto px-10 py-4 rounded-2xl font-black text-lg shadow-xl transition-all ${isFormValid ? 'bg-green-accent text-white hover:-translate-y-1 active:scale-95' : 'bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed'}`}
               >
                 {mode === 'review-only' ? 'Analyze My Resume' : 'Start My Interview'}
               </button>
