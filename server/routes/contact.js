@@ -47,8 +47,8 @@ router.post('/contact', async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.json({ success: true, message: 'Message sent successfully!' });
   } catch (error) {
-    console.error('Email sending error:', error);
-    res.status(500).json({ error: 'Failed to send message' });
+    console.error('Email sending error details:', error);
+    res.status(500).json({ error: `Connection to mail server failed: ${error.message}` });
   }
 });
 

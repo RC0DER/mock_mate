@@ -15,6 +15,7 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submit button clicked for contact form");
     setLoading(true);
     setStatus({ type: '', message: '' });
 

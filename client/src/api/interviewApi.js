@@ -1,5 +1,6 @@
 // Use Vite env variable or dynamically resolve the frontend's host IP for local network testing
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000/api`;
+console.log("MockMate API connected to:", API_URL);
 
 export const uploadResume = async (file) => {
   const formData = new FormData();
