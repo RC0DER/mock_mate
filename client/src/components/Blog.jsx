@@ -32,31 +32,31 @@ const Blog = () => {
   ];
 
   return (
-    <section id="blog" className="py-20 min-h-screen bg-white flex items-center">
+    <section id="blog" className="py-20 min-h-screen bg-white dark:bg-dark transition-colors duration-200 flex items-center">
       <div 
         ref={ref}
         className={`max-w-6xl mx-auto px-6 w-full fade-up ${isVisible ? 'visible' : ''}`}
       >
-        <h2 className="text-4xl font-bold text-center text-gray-900">Latest from our Blog</h2>
-        <p className="text-lg text-center text-gray-500 mt-3 mb-12">Tips, guides and insights for job seekers</p>
+        <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white">Latest from our Blog</h2>
+        <p className="text-lg text-center text-gray-500 dark:text-gray-400 mt-3 mb-12">Tips, guides and insights for job seekers</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {posts.map((post, idx) => (
-            <article key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col">
+            <article key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col">
               <div className={`h-40 bg-gradient-to-r ${post.gradient}`}></div>
               <div className="p-6 flex flex-col flex-grow">
                 <span className="text-xs font-bold uppercase tracking-wider text-green-accent mb-3 block">{post.category}</span>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h3>
-                <p className="text-gray-600 mb-6 flex-grow">{post.desc}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{post.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6 flex-grow">{post.desc}</p>
                 
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${post.author.color}`}>
                       {post.author.initial}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 leading-none">{post.author.name}</p>
-                      <p className="text-xs text-gray-500 mt-1">{post.date}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{post.author.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{post.date}</p>
                     </div>
                   </div>
                   <button className="text-green-accent font-medium text-sm hover:underline">
