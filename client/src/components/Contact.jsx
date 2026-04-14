@@ -37,8 +37,7 @@ const Contact = () => {
   return (
     <section id="contact-us" className="py-20 min-h-screen bg-lightGreen flex items-center">
       <div 
-        ref={ref}
-        className={`max-w-6xl mx-auto px-6 w-full fade-up ${isVisible ? 'visible' : ''}`}
+        className="max-w-6xl mx-auto px-6 w-full"
       >
         <h2 className="text-4xl font-bold text-center text-gray-900">Get in Touch</h2>
         <p className="text-lg text-center text-gray-500 mt-3 mb-12">Have questions? We'd love to hear from you</p>
