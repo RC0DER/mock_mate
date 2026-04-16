@@ -1,25 +1,36 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInterview } from '../context/InterviewContext';
 import { generateQuestion, evaluateAnswer } from '../api/interviewApi';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
+import * as blazeface from '@tensorflow-models/blazeface';
+import * as poseDetection from '@tensorflow-models/pose-detection/dist/pose-detection.js';
+
 const Interview = () => {
   const navigate = useNavigate();
-  const { candidateInfo, interviewState, updateInterviewState, setReportData } = useInterview();
+  const { candidateInfo, interviewState, updateInterviewState } = useInterview();
   const { isListening, transcript, setTranscript, startListening, stopListening, resetTranscript } = useSpeechRecognition();
-  const { speak, isSpeaking, stopSpeaking } = useSpeechSynthesis();
+  const { speak, stopSpeaking, isSpeaking } = useSpeechSynthesis();
   
   const [currentQ, setCurrentQ] = useState('');
   const [typedAnswer, setTypedAnswer] = useState('');
   const [isAiThinking, setIsAiThinking] = useState(true);
   const [mode, setMode] = useState('voice'); 
   
+  // Video Call & Tracking specific State
+  const videoRef = useRef(null);
+  const aiVideoRef = useRef(null);
+  const [warning, setWarning] = useState('');
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const faceModelRef = useRef(null);
+  const poseModelRef = useRef(null);
+  
   const qIndex = interviewState.currentQuestionIndex;
 
-  // Expert Structure: 
-  // Phase 1: Intro (2q), Phase 2: Tech (8q), Phase 3: HR (6q)
   const getRoundInfo = (index) => {
     if (index >= 0 && index <= 1) return { round: 1, name: 'Introduction', totalInRound: 2 };
     if (index >= 2 && index <= 9) return { round: 2, name: 'Technical Interview', totalInRound: 8 };
@@ -30,6 +41,111 @@ const Interview = () => {
   const { round, name: roundName } = getRoundInfo(qIndex);
   const totalQuestions = 16;
 
+  // Setup Webcam and TensorFlow
+  useEffect(() => {
+    if (!candidateInfo.name) return; // Prevent camera prompt if redirecting to home
+
+    const startCam = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        setWarning("⚠️ Please enable your webcam.");
+      }
+    };
+    
+    const loadModels = async () => {
+      try {
+        await tf.ready();
+        faceModelRef.current = await blazeface.load();
+        poseModelRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
+        setModelsLoaded(true);
+      } catch (err) {
+        console.error("TFJS Load Error:", err);
+      }
+    };
+
+    startCam();
+    loadModels();
+
+    return () => {
+      if (videoRef.current?.srcObject) {
+         videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  // Tracking Loop
+  useEffect(() => {
+    if (!modelsLoaded || !videoRef.current) return;
+    
+    let interval = setInterval(async () => {
+      if (videoRef.current.readyState === 4) {
+        try {
+          const faces = await faceModelRef.current.estimateFaces(videoRef.current, false);
+          
+          if (faces.length > 1) {
+            setWarning("Multiple people detected in frame!");
+          } else if (faces.length === 0) {
+            setWarning("No candidate detected! Please return to camera.");
+          } else {
+            const poses = await poseModelRef.current.estimatePoses(videoRef.current);
+            if (poses && poses.length > 0 && poses[0].keypoints) {
+              const wrists = poses[0].keypoints.filter(k => k.name === 'left_wrist' || k.name === 'right_wrist');
+              const nose = poses[0].keypoints.find(k => k.name === 'nose');
+              
+              let handsHigh = false;
+              if (nose) {
+                 handsHigh = wrists.some(w => w.score > 0.6 && w.y < nose.y - 40);
+              }
+              
+              if (handsHigh) {
+                 setWarning("Keep your hands relaxed and visible.");
+              } else {
+                 setWarning("");
+              }
+            } else {
+               setWarning("");
+            }
+          }
+        } catch(e) {
+          console.error("Tracking Error", e);
+        }
+      }
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [modelsLoaded]);
+
+
+  // AI Video-Speech Sync
+  useEffect(() => {
+    const aiVideo = aiVideoRef.current;
+    if (!aiVideo) return;
+
+    if (isSpeaking) {
+      // Ensure video is playing if AI is speaking
+      const playPromise = aiVideo.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.warn("Auto-play prevented or video failed to play", e);
+        });
+      }
+    } else {
+      // Only pause if we're not about to start speaking again (minor delay)
+      const timeout = setTimeout(() => {
+        if (!isSpeaking) {
+          aiVideo.pause();
+        }
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [isSpeaking]);
+
+
+  // Interview Logic
   useEffect(() => {
     if (!candidateInfo.name) {
       navigate('/');
@@ -126,132 +242,190 @@ const Interview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-lightGray dark:bg-gray-900 flex flex-col transition-colors duration-200">
-      {/* Top Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-4">
-          <div className="flex -space-x-2">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=100&h=100" alt="AI Interviewer" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-            <div className="w-10 h-10 rounded-full bg-green-accent text-white flex items-center justify-center font-bold border-2 border-white">{candidateInfo.name?.charAt(0) || 'U'}</div>
-          </div>
-          <div>
-            <h1 className="font-bold text-gray-900 dark:text-white">{roundName}</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Round {round} of 3 • {candidateInfo.role}</p>
-          </div>
-        </div>
-        
-        <div className="flex flex-col items-end">
-          <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold font-mono">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            LIVE SESSION
-          </div>
-        </div>
-      </div>
+    <div className="relative w-full h-screen bg-[#0a0a0b] overflow-hidden flex flex-col font-sans text-white">
       
-      {/* Progress */}
-      <div className="w-full bg-gray-200 h-1.5">
-        <div className="bg-green-accent h-1.5 transition-all duration-700" style={{ width: `${((qIndex + 1) / totalQuestions) * 100}%` }}></div>
-      </div>
-
-      <main className="flex-grow flex flex-col items-center justify-center p-6 lg:p-12 w-full max-w-4xl mx-auto">
-        <div className="text-center mb-10 flex flex-col items-center w-full">
-          <div className="flex items-center gap-3 mb-8">
-            <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${round === 1 ? 'bg-blue-100 text-blue-600' : round === 2 ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
-               Round {round}
-            </span>
-            <span className="bg-white text-gray-500 shadow-sm px-4 py-1.5 rounded-full text-sm font-bold border border-gray-100">
-               Question {qIndex + 1} / {totalQuestions}
-            </span>
-          </div>
-          
-          {isAiThinking ? (
-            <div className="bg-white dark:bg-gray-800 p-12 rounded-[40px] shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-2xl min-h-[250px] flex flex-col items-center justify-center gap-6">
-              <div className="flex gap-3">
-                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce"></div>
-                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-4 h-4 bg-green-accent rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-              <p className="font-bold text-gray-400 dark:text-gray-300 text-xl tracking-tight">AI Interviewer is preparing {roundName} questions...</p>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 p-10 lg:p-16 rounded-[40px] shadow-2xl border border-gray-100 dark:border-gray-700 w-full relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-2 h-full bg-green-accent"></div>
-               <h2 className="font-black text-gray-900 dark:text-white leading-tight text-3xl lg:text-5xl text-left">
-                "{currentQ}"
-              </h2>
-            </div>
-          )}
+      {/* Dynamic Warning Banner */}
+      {warning && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-red-600/90 backdrop-blur text-white font-bold px-6 py-3 rounded-full shadow-2xl border border-red-400 flex items-center gap-3 animate-pulse">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          {warning}
         </div>
+      )}
 
-        {/* Answer Controls */}
-        <div className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-[32px] shadow-xl border border-white/50 dark:border-gray-700/50 p-8 flex flex-col gap-6 transition-all duration-500">
-          <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-6">
-            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tighter text-lg">Your Response</h3>
-            <div className="flex gap-2 bg-gray-100/50 dark:bg-gray-700/50 p-1.5 rounded-2xl">
-              <button onClick={() => setMode('voice')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'voice' ? 'bg-white shadow-md text-green-accent' : 'text-gray-400 hover:text-gray-600'}`}>VOICE</button>
-              <button onClick={() => setMode('text')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'text' ? 'bg-white shadow-md text-green-accent' : 'text-gray-400 hover:text-gray-600'}`}>TEXT</button>
-            </div>
-          </div>
+      {/* Background Ambience */}
+      <div className="absolute inset-0 z-0 bg-radial-gradient from-gray-900 to-black opacity-40"></div>
 
-          {mode === 'voice' ? (
-            <div className="flex flex-col items-center py-4">
-              <div className="min-h-[120px] w-full mb-8 relative">
-                {transcript ? (
-                  <p className="text-xl text-gray-800 dark:text-white p-6 bg-gray-50/50 dark:bg-gray-700/50 rounded-3xl border border-gray-100 dark:border-gray-600 min-h-[120px] leading-relaxed shadow-inner">{transcript}</p>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-3xl bg-gray-50/30 dark:bg-gray-700/30 text-gray-400 dark:text-gray-300 font-medium italic">
-                    {isListening ? "Listening... I'm all ears!" : "Tap the microphone and start speaking clearly."}
-                  </div>
-                )}
+      {/* Main Video Call Content */}
+      <main className="relative z-10 flex-grow flex flex-col items-center justify-center p-4 md:p-8">
+        
+        {/* Interviewer Video Stage */}
+        <div className={`relative w-full max-w-5xl aspect-video rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border-2 transition-all duration-500 ${isSpeaking ? 'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)]' : 'border-white/10'}`}>
+           <video 
+              ref={aiVideoRef}
+              src="/ai_interviewer.mp4" 
+              playsInline
+              muted
+              className="w-full h-full object-contain" 
+           />
+           
+           {/* HD / Status Overlay */}
+           <div className="absolute top-6 left-6 flex items-center gap-3">
+              <div className="bg-blue-600 px-3 py-1 rounded text-[10px] font-black tracking-widest uppercase">HD 1080P</div>
+              <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                 <span className="text-[10px] font-bold tracking-widest uppercase">Live Session</span>
               </div>
-              
-              <div className="flex items-center gap-8">
-                <button 
-                  onClick={isListening ? stopListening : startListening}
-                  className={`w-24 h-24 rounded-full flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 ${isListening ? 'bg-red-500 text-white ring-8 ring-red-100' : 'bg-green-accent text-white ring-8 ring-green-50'}`}
-                >
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    {isListening ? (
-                      <rect x="6" y="6" width="12" height="12" rx="2"></rect>
-                    ) : (
-                      <>
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                        <line x1="12" y1="19" x2="12" y2="22"></line>
-                      </>
-                    )}
-                  </svg>
-                </button>
-                {(transcript.length > 0) && !isAiThinking && (
-                  <button onClick={handleSubmitAnswer} className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-10 py-5 rounded-full font-black text-lg hover:bg-black dark:hover:bg-gray-100 shadow-2xl transform transition-transform active:scale-95 flex items-center gap-3">
-                    SUBMIT ANSWER
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6">
-              <textarea 
-                className="w-full h-48 p-6 bg-gray-50/50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-3xl focus:ring-4 focus:ring-green-accent/20 focus:bg-white dark:focus:bg-gray-800 focus:outline-none resize-none text-xl text-gray-800 dark:text-white leading-relaxed transition-all shadow-inner" 
-                placeholder="Type your insights here..."
-                value={typedAnswer}
-                onChange={(e) => setTypedAnswer(e.target.value)}
-              ></textarea>
-              <div className="flex justify-end">
-                <button 
-                  onClick={handleSubmitAnswer} 
-                  disabled={!typedAnswer.trim() || isAiThinking}
-                  className="bg-green-accent text-white px-12 py-4 rounded-2xl font-black text-lg shadow-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-opacity-90 active:scale-95 transition-all flex items-center gap-3"
-                >
-                  SUBMIT ANSWER
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </button>
-              </div>
-            </div>
-          )}
+           </div>
+
+           {/* Round Detail Overlay (Top Center) */}
+           <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-2xl hidden md:flex flex-col items-center">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{roundName}</span>
+              <span className="text-xs font-bold text-white/60 italic">Question {qIndex + 1} / {totalQuestions}</span>
+           </div>
+
+           {/* AI Speaking Indicator removed as requested */}
+
+           {/* Subtitle Overlay (Bottom Center) */}
+           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 w-full max-w-3xl px-6">
+              {!isAiThinking && (
+                 <div className="bg-black/80 backdrop-blur-md px-8 py-5 rounded-2xl border border-white/10 shadow-2xl text-center">
+                    <p className="text-white text-lg md:text-xl font-medium leading-relaxed italic">
+                       "{currentQ}"
+                    </p>
+                 </div>
+              )}
+           </div>
         </div>
       </main>
+
+      {/* Top Right Candidate Webcam Feed */}
+      <div className={`absolute top-8 right-8 w-40 h-28 md:w-56 md:h-40 bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border-4 z-40 transition-all duration-300 ${warning ? 'border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)]' : 'border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.1)]'}`}>
+        <video 
+          ref={videoRef} 
+          className="w-full h-full object-cover transform scale-x-[-1]" 
+          autoPlay 
+          playsInline 
+          muted 
+        />
+        
+        {/* Dynamic Camera Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2">
+           <div className="flex justify-between w-full">
+              <div className={`w-3 h-3 border-t-2 border-l-2 transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+              <div className={`w-3 h-3 border-t-2 border-r-2 transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+           </div>
+           
+           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+              <div className={`w-[80%] h-[80%] border transition-colors ${warning ? 'border-red-500' : 'border-green-500'} grid grid-cols-2 grid-rows-2`}>
+                 <div className={`border-b border-r transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+                 <div className={`border-b transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+                 <div className={`border-r transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+                 <div></div>
+              </div>
+           </div>
+
+           <div className="flex justify-between w-full">
+              <div className={`w-3 h-3 border-b-2 border-l-2 transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+              <div className={`w-3 h-3 border-b-2 border-r-2 transition-colors ${warning ? 'border-red-500' : 'border-green-500'}`}></div>
+           </div>
+        </div>
+
+        <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-[4px] text-[8px] text-white font-black tracking-tighter backdrop-blur-md transition-colors ${warning ? 'bg-red-600' : 'bg-green-600'}`}>
+          {warning ? 'FAULT' : 'NORMAL'}
+        </div>
+      </div>
+
+      {/* Bottom Control Dock */}
+      <div className="relative z-30 p-6 flex justify-center bg-gradient-to-t from-black to-transparent">
+         <div className="w-full max-w-4xl bg-[#1c1c1e] border border-white/10 rounded-3xl p-5 shadow-2xl flex flex-col gap-4">
+            
+            <div className="flex justify-between items-center px-4">
+               <div className="flex gap-2 bg-black/40 p-1 rounded-xl border border-white/5">
+                  <button onClick={() => setMode('voice')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${mode === 'voice' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}>VOICE</button>
+                  <button onClick={() => setMode('text')} className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${mode === 'text' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}>TEXT</button>
+               </div>
+               
+               <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => !isAiThinking && speak(currentQ)} 
+                    disabled={isAiThinking} 
+                    className="p-3 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20"
+                    title="Repeat Question"
+                  >
+                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                  </button>
+               </div>
+            </div>
+
+            {mode === 'voice' ? (
+               <div className="flex items-center gap-4">
+                  <div className="flex-grow bg-black/40 rounded-2xl h-16 flex items-center px-6 border border-white/5 overflow-hidden">
+                     {transcript ? (
+                        <p className="text-gray-300 italic font-medium truncate">"{transcript}"</p>
+                     ) : (
+                        <div className="flex items-center gap-3">
+                           {isListening && <div className="flex gap-1"><div className="w-1 h-3 bg-blue-500 animate-pulse"></div><div className="w-1 h-2 bg-blue-500 animate-pulse delay-75"></div><div className="w-1 h-3 bg-blue-500 animate-pulse delay-150"></div></div>}
+                           <span className="text-gray-500 text-sm font-bold tracking-widest uppercase">{isListening ? "Listening..." : "Tap Mic to speak"}</span>
+                        </div>
+                     )}
+                  </div>
+
+                  <button 
+                     onClick={isListening ? stopListening : startListening} 
+                     className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isListening ? 'bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.5)]' : 'bg-white text-black hover:scale-105 active:scale-95'}`}
+                  >
+                     {isListening ? (
+                        <>
+                           <span className="absolute inset-0 rounded-full border-4 border-red-500/40 animate-ping"></span>
+                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+                        </>
+                     ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                     )}
+                  </button>
+
+                  <button 
+                     onClick={handleSubmitAnswer} 
+                     disabled={!transcript || isAiThinking}
+                     className="px-8 h-16 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black tracking-widest uppercase transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
+                  >
+                     {isAiThinking ? (
+                        <>
+                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                           <span>Processing...</span>
+                        </>
+                     ) : (
+                        <span>Send</span>
+                     )}
+                  </button>
+               </div>
+            ) : (
+               <div className="flex gap-4">
+                  <input 
+                     type="text"
+                     className="flex-grow bg-black/40 border border-white/5 rounded-2xl px-6 h-16 focus:outline-none focus:border-blue-500/50 text-white"
+                     placeholder="Type your response..."
+                     value={typedAnswer}
+                     onChange={(e) => setTypedAnswer(e.target.value)}
+                  />
+                  <button 
+                     onClick={handleSubmitAnswer} 
+                     disabled={!typedAnswer.trim() || isAiThinking}
+                     className="px-10 h-16 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black tracking-widest uppercase transition-all disabled:opacity-30 flex items-center gap-3"
+                  >
+                     {isAiThinking ? (
+                        <>
+                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                           <span>Processing...</span>
+                        </>
+                     ) : (
+                        <span>Send</span>
+                     )}
+                  </button>
+               </div>
+            )}
+         </div>
+      </div>
     </div>
   );
 };
